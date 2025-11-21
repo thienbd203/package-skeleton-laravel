@@ -20,7 +20,7 @@ We highly appreciate you sending us a postcard from your hometown, mentioning wh
 You can install the package via composer:
 
 ```bash
-composer require thienbd/inertia-table-builder
+composer require inertia-kit/inertia-table-builder
 ```
 
 You can publish and run the migrations with:
@@ -76,8 +76,8 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [inertia-kit](https://github.com/thienbd)
-- [All Contributors](../../contributors)
+-   [inertia-kit](https://github.com/thienbd)
+-   [All Contributors](../../contributors)
 
 ## License
 
