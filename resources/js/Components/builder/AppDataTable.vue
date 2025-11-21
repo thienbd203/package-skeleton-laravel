@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { DataItem, DataTableProps } from "@/types/datatable";
-import { router, usePage } from "@inertiajs/vue3";
-import { watch } from "vue";
-import { route } from "ziggy-js";
-import AppDataTableContent from "./table/AppDataTableContent.vue";
-import AppDataTablePagination from "./table/AppDataTablePagination.vue";
-import AppDataTableToolbar from "./table/AppDataTableToolbar.vue";
-import AppDataTableActiveFilters from "./table/AppDataTableActiveFilters.vue";
-import { useFlashStore } from "@/stores/flash";
-import { useDatatableStore } from "@/stores/datatable";
-import { storeToRefs } from "pinia";
-import { ref } from "vue";
+import { useDatatableStore } from '@/stores/datatable';
+import { DataItem, DataTableProps } from '@/types/datatable';
+import { router } from '@inertiajs/vue3';
+import { storeToRefs } from 'pinia';
+import { ref, watch } from 'vue';
+import { route } from 'ziggy-js';
+import AppDataTableActiveFilters from './table/AppDataTableActiveFilters.vue';
+import AppDataTableContent from './table/AppDataTableContent.vue';
+import AppDataTablePagination from './table/AppDataTablePagination.vue';
+import AppDataTableToolbar from './table/AppDataTableToolbar.vue';
 
 type RespProp = {
     data: DataTableProps;
@@ -43,26 +41,31 @@ watch(
         }
 
         const handler = setTimeout(() => {
-            const filterParams = af.reduce((acc, filter) => {
-                if (
-                    filter.value &&
-                    Array.isArray(filter.value) &&
-                    filter.value.length > 0
-                ) {
-                    const joined =
-                        filter.value.length > 1
-                            ? filter.value.join(",")
-                            : filter.value.toString();
-                    acc[`${prefix}filter[${filter.field}]`] = filter.operator
-                        ? `${filter.operator}:${joined}`
-                        : joined;
-                } else if (filter.value) {
-                    acc[`${prefix}filter[${filter.field}]`] = filter.operator
-                        ? `${filter.operator}:${filter.value}`
-                        : (filter.value as string);
-                }
-                return acc;
-            }, {} as Record<string, string>);
+            const filterParams = af.reduce(
+                (acc, filter) => {
+                    if (
+                        filter.value &&
+                        Array.isArray(filter.value) &&
+                        filter.value.length > 0
+                    ) {
+                        const joined =
+                            filter.value.length > 1
+                                ? filter.value.join(',')
+                                : filter.value.toString();
+                        acc[`${prefix}filter[${filter.field}]`] =
+                            filter.operator
+                                ? `${filter.operator}:${joined}`
+                                : joined;
+                    } else if (filter.value) {
+                        acc[`${prefix}filter[${filter.field}]`] =
+                            filter.operator
+                                ? `${filter.operator}:${filter.value}`
+                                : (filter.value as string);
+                    }
+                    return acc;
+                },
+                {} as Record<string, string>,
+            );
 
             const params =
                 Object.keys(filterParams).length > 0 ? filterParams : {};
@@ -71,9 +74,9 @@ watch(
                 ? store.tableData.tableRoute
                 : route(`${store.tableData.baseRoute}.index`);
 
-            const searchParam = prefix + "q";
-            const sortByParam = prefix + "sort";
-            const sortDirParam = prefix + "dir";
+            const searchParam = prefix + 'q';
+            const sortByParam = prefix + 'sort';
+            const sortDirParam = prefix + 'dir';
 
             router.get(
                 routeUrl,
@@ -91,12 +94,12 @@ watch(
                         const props = page.props as unknown as RespProp;
                         store.updateItems(props.data.items);
                     },
-                }
+                },
             );
         }, 350);
 
         onCleanup(() => clearTimeout(handler));
-    }
+    },
 );
 </script>
 
