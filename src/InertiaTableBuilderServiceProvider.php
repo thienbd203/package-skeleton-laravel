@@ -22,4 +22,11 @@ class InertiaTableBuilderServiceProvider extends PackageServiceProvider
             ->hasMigration('create_inertia_table_builder_table')
             ->hasCommand(InertiaTableBuilderCommand::class);
     }
+
+    public function boot(): void
+    {
+        $this->publishes([
+            __DIR__ . '/../resources/js' => resource_path('js/vendor/inertia-table-builder'),
+        ], 'inertia-table-builder-js');
+    }
 }
