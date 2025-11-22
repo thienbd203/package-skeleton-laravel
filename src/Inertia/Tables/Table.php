@@ -414,6 +414,10 @@ class Table implements JsonSerializable
             $request->query->set('sort', $direction . $sortColumn);
         }
 
+        if ($filterData = $request->get($this->getFilterParam())) {
+            $request->query->set('filter', $filterData);
+        }
+
         $query = QueryBuilder::for($this->model, $request)
             ->when($this->queryUsingCallback, fn($q) => $this->evaluate($this->queryUsingCallback, ['query' => $q, 'request' => $request]))
             ->allowedFilters($this->getAllowedFilters($request))
@@ -423,72 +427,49 @@ class Table implements JsonSerializable
             $query->defaultSort($this->defaultSortDir === 'desc' ? '-' . $this->defaultSort : $this->defaultSort);
         }
 
-        /**
-         * search handler
-         */
-        $search = request()->get($this->getSearchParam());
+        $search = $request->get($this->getSearchParam());
         if ($search) {
             $query->where(function ($q) use ($search) {
                 foreach ($this->columns as $col) {
                     if (! $col->searchable) {
                         continue;
                     }
+
                     if ($col->relation && $col->relationKey) {
                         if (str_contains($col->relation, '.')) {
-                            [$relationName, $relationAttribute] = extractRelation($col->relation);
-                            $q->orWhereHas($relationName, function ($q) use ($relationAttribute, $search) {
-                                $q->whereRaw("LOWER($relationAttribute) LIKE ?", "%{$search}%");
-                            });
-
+                            [$relationName, $relationAttribute] = explode('.', $col->relation, 2);
+                            $q->orWhereHas($relationName, fn($qq) => $qq->whereRaw("LOWER($relationAttribute) LIKE ?", "%{$search}%"));
                             continue;
                         }
-                        $q->orWhereHas($col->relation, function ($q) use ($col, $search) {
-                            $q->whereRaw("LOWER($col->relationKey) LIKE ?", "%{$search}%");
-                        });
 
+                        $q->orWhereHas($col->relation, fn($qq) => $qq->whereRaw("LOWER({$col->relationKey}) LIKE ?", "%{$search}%"));
                         continue;
                     }
+
                     if (str_contains($col->name, '.')) {
-                        [$relationName, $relationAttribute] = extractRelation($col->name);
-                        $q->orWhereHas($relationName, function ($q) use ($relationAttribute, $search) {
-                            $q->whereRaw("LOWER($relationAttribute) LIKE ?", "%{$search}%");
-                        });
-
+                        [$relationName, $relationAttribute] = explode('.', $col->name, 2);
+                        $q->orWhereHas($relationName, fn($qq) => $qq->whereRaw("LOWER($relationAttribute) LIKE ?", "%{$search}%"));
                         continue;
                     }
-                    $q->orWhereRaw("LOWER($col->name) LIKE ?", "%{$search}%");
+
+                    $q->orWhereRaw("LOWER({$col->name}) LIKE ?", "%{$search}%");
                 }
             });
         }
 
-        if ($this->disablePagination == false) {
-            /**
-             * pagination handler
-             */
-            $perPage = request()->input($this->getPerPageParam(), $this->perPage);
-
-            if ($this->paginationMethod === 'cursor') {
-                $items = $query->cursorPaginate(perPage: $perPage, cursorName: $this->getPageParam())
-                    ->withQueryString();
-            } elseif ($this->paginationMethod === 'simple') {
-                $items = $query->simplePaginate(perPage: $perPage, pageName: $this->getPageParam())
-                    ->withQueryString();
-            } else {
-                $items = $query
-                    ->paginate(perPage: $perPage, pageName: $this->getPageParam())
-                    ->withQueryString();
-            }
+        if ($this->disablePagination) {
+            $items = $query->get();
         } else {
-            $items = $query
-                ->get();
+            $perPage = $request->input($this->getPerPageParam(), $this->perPage);
+
+            $items = match ($this->paginationMethod) {
+                'cursor' => $query->cursorPaginate(perPage: $perPage, cursorName: $this->getPageParam())->withQueryString(),
+                'simple' => $query->simplePaginate($perPage, ['*'], $this->getPageParam())->withQueryString(),
+                default  => $query->paginate($perPage, ['*'], $this->getPageParam())->withQueryString(),
+            };
         }
 
-        /**
-         * datatable rendering handler
-         */
-        $items = $this->mapRowsWithRenderUsing($items);
-
-        return $items;
+        return $this->mapRowsWithRenderUsing($items);
     }
 
     /**
