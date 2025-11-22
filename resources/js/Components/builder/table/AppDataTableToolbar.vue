@@ -98,7 +98,7 @@ const confirmAndRunAction = () => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between gap-2 px-4 py-4">
+    <div class="flex items-center justify-between gap-2 p-2">
         <!-- Search -->
         <div class="flex items-center gap-2">
             <Input

@@ -4,42 +4,42 @@ import {
     DataTableProps,
     Filter,
     PaginatedItems,
-} from "@/types/datatable";
-import { defineStore } from "pinia";
-import { computed, reactive, readonly, ref } from "vue";
+} from '@/types/datatable';
+import { defineStore } from 'pinia';
+import { computed, reactive, readonly, ref } from 'vue';
 
 export const useDatatableStore = (prefix: string) => {
     return defineStore(`table-${prefix}`, () => {
         const createEmptyTableData = (): DataTableProps => ({
-            name: "",
-            title: "",
-            prefix: "",
+            name: '',
+            title: '',
+            prefix: '',
             items: {
                 data: [],
                 current_page: 1,
                 from: 0,
                 last_page: 1,
                 links: [],
-                path: "",
+                path: '',
                 per_page: 10,
                 to: 0,
                 total: 0,
             },
             columns: [],
             filters: {
-                q: "",
-                sort: "",
-                dir: "asc",
+                q: '',
+                sort: '',
+                dir: 'asc',
             },
             actions: [],
-            baseRoute: "",
+            baseRoute: '',
             edit: false,
             view: false,
             delete: false,
             forceDelete: false,
             restore: false,
             disablePagination: false,
-            paginationMethod: "simple",
+            paginationMethod: 'simple',
         });
 
         const tableData = reactive<DataTableProps>(createEmptyTableData());
@@ -50,21 +50,23 @@ export const useDatatableStore = (prefix: string) => {
             () =>
                 (tableData.disablePagination
                     ? tableData.items
-                    : tableData.items.data) as unknown as DataItem[]
+                    : tableData.items.data) as unknown as DataItem[],
         );
         const totalItems = computed(() => tableData.items.total);
         const currentPage = computed(() => tableData.items.current_page);
-        const isInitialized = computed(() => tableData.name !== "");
+        const isInitialized = computed(() => tableData.name !== '');
         const hasSimplePaginate = computed(
             () =>
-                tableData.paginationMethod === "simple" ||
-                tableData.paginationMethod === "cursor"
+                tableData.paginationMethod === 'simple' ||
+                tableData.paginationMethod === 'cursor',
         );
         const isAllSelected = computed({
             get: () => {
                 const condition = hasSimplePaginate.value
                     ? data.value.every((item) =>
-                          selectedIds.value.includes(item.id as string | number)
+                          selectedIds.value.includes(
+                              item.id as string | number,
+                          ),
                       )
                     : selectedIds.value.length == totalItems.value;
                 return data.value.length > 0 && condition;
@@ -79,8 +81,8 @@ export const useDatatableStore = (prefix: string) => {
                         get: () => isChecked(item.id as string),
                         set: () => toggleSelectOne(item.id as string),
                     }),
-                ])
-            )
+                ]),
+            ),
         );
 
         const setData = (newData: DataTableProps) => {
@@ -93,6 +95,7 @@ export const useDatatableStore = (prefix: string) => {
 
         const updateItems = (newItems: PaginatedItems) => {
             tableData.items = newItems;
+            tableData.perPage = newItems.per_page;
         };
 
         const updateItemsData = (newData: DataItem[]) => {
@@ -115,7 +118,7 @@ export const useDatatableStore = (prefix: string) => {
             tableData.items.total -= 1;
         };
 
-        const updateFilters = (filters: Partial<DataTableProps["filters"]>) => {
+        const updateFilters = (filters: Partial<DataTableProps['filters']>) => {
             Object.assign(tableData.filters, filters);
         };
 
@@ -133,28 +136,31 @@ export const useDatatableStore = (prefix: string) => {
         // Initialize UI state when data is set
         const initializeUIState = () => {
             // Initialize hidden columns based on column definitions
-            hiddenColumns.value = tableData.columns.reduce((acc, col) => {
-                acc[col.name] = col.hidden;
-                return acc;
-            }, {} as Record<string, boolean>);
+            hiddenColumns.value = tableData.columns.reduce(
+                (acc, col) => {
+                    acc[col.name] = col.hidden;
+                    return acc;
+                },
+                {} as Record<string, boolean>,
+            );
 
             activeFilters.value = [];
             if (tableData.filters.filter) {
                 Object.entries(tableData.filters.filter).forEach(
                     ([field, value]) => {
-                        const [operator, filterValue] = value.includes(":")
+                        const [operator, filterValue] = value.includes(':')
                             ? [
-                                  value.split(":")[0],
-                                  value.split(":").slice(1).join(":"),
+                                  value.split(':')[0],
+                                  value.split(':').slice(1).join(':'),
                               ]
-                            : ["", value];
+                            : ['', value];
 
                         activeFilters.value.push({
                             field,
                             operator,
                             value: filterValue,
                         });
-                    }
+                    },
                 );
             }
 
@@ -177,7 +183,7 @@ export const useDatatableStore = (prefix: string) => {
                 const key = `${filter.field}`;
 
                 if (Array.isArray(filter.value)) {
-                    const joined = filter.value.join(",");
+                    const joined = filter.value.join(',');
                     payload[key] = filter.operator
                         ? `${filter.operator}:${joined}`
                         : joined;
@@ -200,10 +206,10 @@ export const useDatatableStore = (prefix: string) => {
         const toggleSelectAll = (checked: boolean) => {
             if (checked) {
                 const visibleIds = data.value.map(
-                    (item) => item.id as string | number
+                    (item) => item.id as string | number,
                 );
                 const mergeIds = Array.from(
-                    new Set([...visibleIds, ...selectedIds.value])
+                    new Set([...visibleIds, ...selectedIds.value]),
                 );
                 selectedIds.value = mergeIds;
             } else {
@@ -249,15 +255,15 @@ export const useDatatableStore = (prefix: string) => {
             }
 
             const filterDef = tableData.filters.opt?.find(
-                (f) => f.field === field
+                (f) => f.field === field,
             );
             if (!filterDef) return;
 
             const newFilter: ActiveFilter = {
                 field,
                 value:
-                    filterDef.type === "select" && filterDef.multiple ? [] : "",
-                operator: filterDef.operators[0]?.value ?? "",
+                    filterDef.type === 'select' && filterDef.multiple ? [] : '',
+                operator: filterDef.operators[0]?.value ?? '',
             };
 
             activeFilters.value = [...activeFilters.value, newFilter];
@@ -270,7 +276,7 @@ export const useDatatableStore = (prefix: string) => {
 
         const removeFilter = (field: string) => {
             activeFilters.value = activeFilters.value.filter(
-                (f) => f.field !== field
+                (f) => f.field !== field,
             );
             delete openFilterPopovers.value[field];
         };
@@ -282,10 +288,10 @@ export const useDatatableStore = (prefix: string) => {
 
         const updateFilter = (
             field: string,
-            updates: Partial<ActiveFilter>
+            updates: Partial<ActiveFilter>,
         ) => {
             activeFilters.value = activeFilters.value.map((filter) =>
-                filter.field === field ? { ...filter, ...updates } : filter
+                filter.field === field ? { ...filter, ...updates } : filter,
             );
         };
 
@@ -298,7 +304,7 @@ export const useDatatableStore = (prefix: string) => {
         const hasSelection = computed(() => selectedIds.value.length > 0);
         const hasFilters = computed(() => activeFilters.value.length > 0);
         const visibleColumns = computed(() =>
-            tableData.columns.filter((col) => !hiddenColumns.value[col.name])
+            tableData.columns.filter((col) => !hiddenColumns.value[col.name]),
         );
 
         // Override setData to initialize UI state
@@ -308,26 +314,26 @@ export const useDatatableStore = (prefix: string) => {
             initializeUIState();
         };
 
-        const searchQuery = ref(tableData.filters.q || "");
+        const searchQuery = ref(tableData.filters.q || '');
 
         const sort = ref(tableData.filters.sort);
         const dir = ref(tableData.filters.dir);
 
         const handleSort = (colName: string) => {
             if (sort.value === colName) {
-                dir.value = dir.value === "asc" ? "desc" : "asc";
+                dir.value = dir.value === 'asc' ? 'desc' : 'asc';
             } else {
                 sort.value = colName;
-                dir.value = "asc";
+                dir.value = 'asc';
             }
         };
 
         const updateFilterOptions = (
             field: string,
-            options: { id: string; value: any; label: string }[]
+            options: { id: string; value: any; label: string }[],
         ) => {
             const filterDef = tableData.filters.opt?.find(
-                (f) => f.field === field
+                (f) => f.field === field,
             );
             if (filterDef) {
                 filterDef.options = options;
@@ -337,10 +343,12 @@ export const useDatatableStore = (prefix: string) => {
         const handleFilterChange = (
             field: string,
             value: string | string[],
-            operator: string
+            operator: string,
         ) => {
             activeFilters.value = activeFilters.value.map((filter) =>
-                filter.field === field ? { ...filter, value, operator } : filter
+                filter.field === field
+                    ? { ...filter, value, operator }
+                    : filter,
             );
             syncFiltersToPayload();
         };
@@ -348,15 +356,15 @@ export const useDatatableStore = (prefix: string) => {
         const getDisplayFilter = (filter: ActiveFilter, filterDef: Filter) => {
             const value = filter.value;
             if (Array.isArray(value)) {
-                if (value.length === 0) return "None";
+                if (value.length === 0) return 'None';
                 const labels =
                     filterDef.options
                         ?.filter((opt) => value.includes(opt.value))
                         .map((opt) => opt.label) || [];
                 if (labels.length > 2) return `${labels.length} selected`;
-                return labels.join(", ");
+                return labels.join(', ');
             }
-            if (filterDef.type === "select") {
+            if (filterDef.type === 'select') {
                 return (
                     filterDef.options?.find((opt) => opt.value === value)
                         ?.label || String(value)

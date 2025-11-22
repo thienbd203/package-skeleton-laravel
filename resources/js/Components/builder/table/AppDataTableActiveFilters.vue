@@ -24,8 +24,8 @@ const store = useDatatableStore(props.idx)();
     <div
         :class="
             cn(
-                'flex flex-wrap items-center gap-2 px-4',
-                store.activeFilters.length > 0 ? 'mb-4' : '',
+                'flex flex-wrap items-center gap-2 px-2',
+                store.activeFilters.length > 0 ? 'mb-2' : '',
             )
         "
     >
