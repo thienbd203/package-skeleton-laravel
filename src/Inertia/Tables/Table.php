@@ -407,44 +407,20 @@ class Table implements JsonSerializable
      */
     private function get(): LengthAwarePaginator|Paginator|CursorPaginator|Collection
     {
-        $sort = request()->get($this->getSortByParam(), $this->defaultSort);
-        request()->merge([
-            $this->getSortByParam() => request()->get($this->getSortDirParam(), $this->defaultSortDir) === 'desc' ? '-' . $sort : $sort,
-        ]);
+        $request = request();
 
-        if ($this->baseQuery == null) {
-            config()->set('query-builder.parameters.filter', $this->getFilterParam());
+        if ($sortColumn = $request->get($this->getSortByParam())) {
+            $direction = $request->get($this->getSortDirParam(), 'asc') === 'desc' ? '-' : '';
+            $request->query->set('sort', $direction . $sortColumn);
         }
 
-        $query = $this->baseQuery == null ?
-            QueryBuilder::for($this->model, request())
-            ->when(
-                $this->queryUsingCallback,
-                function (Builder $query) {
-                    return $this->evaluate($this->queryUsingCallback, [
-                        'query'   => $query,
-                        'request' => request(),
-                    ]);
-                }
-            )
-            ->allowedFilters($this->getAllowedFilters(request()))
-            ->allowedSorts($this->getAllowedSorts())
-            ->with(array_filter(array_map(fn($c) => $c->relation, $this->columns)))
-            : $this->evaluate($this->baseQuery, [
-                'request' => request(),
-            ]);
+        $query = QueryBuilder::for($this->model, $request)
+            ->when($this->queryUsingCallback, fn($q) => $this->evaluate($this->queryUsingCallback, ['query' => $q, 'request' => $request]))
+            ->allowedFilters($this->getAllowedFilters($request))
+            ->allowedSorts($this->getAllowedSorts());
 
-        /**
-         * default sort handler
-         */
-        if ($this->defaultSort) {
-            $dirStr = request()->get($this->getSortDirParam(), $this->defaultSortDir);
-            $dir    = $dirStr === 'desc' ? '-' : '';
-            if ($this->baseQuery == null) {
-                $query->defaultSort($dir . $this->defaultSort);
-            } else {
-                $query->orderBy($this->defaultSort, $dirStr);
-            }
+        if ($this->defaultSort && ! $request->filled('sort')) {
+            $query->defaultSort($this->defaultSortDir === 'desc' ? '-' . $this->defaultSort : $this->defaultSort);
         }
 
         /**
@@ -511,10 +487,6 @@ class Table implements JsonSerializable
          * datatable rendering handler
          */
         $items = $this->mapRowsWithRenderUsing($items);
-
-        request()->merge([
-            $this->getSortByParam() => $sort,
-        ]);
 
         return $items;
     }
