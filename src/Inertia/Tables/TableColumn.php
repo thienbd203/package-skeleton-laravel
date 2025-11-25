@@ -23,6 +23,10 @@ class TableColumn implements JsonSerializable
 
     public bool $toggleable = true;
 
+    public string $headClass = '';
+
+    public string $cellClass = '';
+
     public ?string $align = null;
 
     public bool $wrap = false;
@@ -134,6 +138,20 @@ class TableColumn implements JsonSerializable
         return $this;
     }
 
+    public function headClass(string $class): static
+    {
+        $this->headClass = $class;
+
+        return $this;
+    }
+
+    public function cellClass(string $class): static
+    {
+        $this->cellClass = $class;
+
+        return $this;
+    }
+
     public function toArray(): array
     {
         return [
@@ -146,6 +164,8 @@ class TableColumn implements JsonSerializable
             'relationKey'  => $this->relationKey,
             'relationType' => $this->relationType,
             'toggleable'   => $this->toggleable,
+            'headClass'    => $this->headClass,
+            'cellClass'    => $this->cellClass,
             'align'        => $this->align,
             'wrap'         => $this->wrap,
             'truncateLines' => $this->truncateLines,
