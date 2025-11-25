@@ -23,6 +23,10 @@ class TableColumn implements JsonSerializable
 
     public bool $toggleable = true;
 
+    public string $headClass = '';
+
+    public string $cellClass = '';
+
     /**
      * @var callable|null
      */
@@ -43,6 +47,20 @@ class TableColumn implements JsonSerializable
     public function label(string $label): static
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function headClass(string $headClass): static
+    {
+        $this->headClass = $headClass;
+
+        return $this;
+    }
+
+    public function cellClass(string $cellClass): static
+    {
+        $this->cellClass = $cellClass;
 
         return $this;
     }
@@ -118,6 +136,8 @@ class TableColumn implements JsonSerializable
             'relationKey'  => $this->relationKey,
             'relationType' => $this->relationType,
             'toggleable'   => $this->toggleable,
+            'headClass'    => $this->headClass,
+            'cellClass'    => $this->cellClass,
         ];
     }
 
